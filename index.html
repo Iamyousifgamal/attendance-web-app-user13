@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eaf4fc">
+<title>تسجيل الحضور</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --blue:          #3498db;
+    --blue-dark:     #2980b9;
+    --blue-darker:   #1f6391;
+    --ink:           #1b3a57;   /* dark blue for headings */
+    --muted:         #8a99a8;   /* light gray for subtitle / footer */
+    --card:          #ffffff;
+    --field:         #f6f9fc;
+    --border:        #e1e8ef;
+    --success-bg:    #e8f8f0;
+    --success-fg:    #1e7a52;
+    --error-bg:      #fdecea;
+    --error-fg:      #c0392b;
+    --grad-top:      #dceefb;
+    --grad-bottom:   #ffffff;
+    --shadow:        0 18px 40px -18px rgba(27, 58, 87, .28);
+    --radius:        16px;
+  }
+
+  /* The page can render inside a viewer with its own theme setting.
+     Keep the brand identity, just soften the glare in dark mode. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --card:       #16202b;
+      --field:      #1d2936;
+      --border:     #2b3a49;
+      --ink:        #eaf2f9;
+      --muted:      #93a4b5;
+      --grad-top:   #101820;
+      --grad-bottom:#0b1117;
+      --success-bg: #14332a;
+      --success-fg: #7fd9ae;
+      --error-bg:   #3a1d1c;
+      --error-fg:   #f1948a;
+      --shadow:     0 18px 40px -18px rgba(0, 0, 0, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --card:       #16202b;
+    --field:      #1d2936;
+    --border:     #2b3a49;
+    --ink:        #eaf2f9;
+    --muted:      #93a4b5;
+    --grad-top:   #101820;
+    --grad-bottom:#0b1117;
+    --success-bg: #14332a;
+    --success-fg: #7fd9ae;
+    --error-bg:   #3a1d1c;
+    --error-fg:   #f1948a;
+    --shadow:     0 18px 40px -18px rgba(0, 0, 0, .6);
+  }
+
+  /* ---------- Base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    padding: 24px 18px calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cairo', 'Segoe UI', Tahoma, system-ui, sans-serif;
+    background: var(--grad-bottom);
+    background-image: linear-gradient(180deg, var(--grad-top) 0%, var(--grad-bottom) 62%);
+    background-attachment: fixed;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Card ---------- */
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 34px 26px 26px;
+    text-align: center;
+  }
+
+  .logo {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 18px;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    line-height: 1;
+    border-radius: 50%;
+    background: linear-gradient(160deg, #eaf4fc, #d3e9f9);
+    box-shadow: inset 0 0 0 1px rgba(52, 152, 219, .18);
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--ink);
+  }
+
+  .subtitle {
+    margin: 0 0 26px;
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  /* ---------- Input ---------- */
+  .name-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-family: inherit;
+    font-size: 16px;            /* 16px prevents zoom-on-focus in iOS Safari */
+    font-weight: 500;
+    color: var(--ink);
+    text-align: right;
+    background: var(--field);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+  }
+  .name-input::placeholder { color: var(--muted); font-weight: 400; }
+  .name-input:focus {
+    border-color: var(--blue);
+    background: var(--card);
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, .14);
+  }
+  .name-input:disabled { opacity: .6; }
+
+  /* ---------- Button ---------- */
+  .checkin-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 15px 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: inherit;
+    font-size: 16.5px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--blue);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color .18s ease, transform .1s ease, box-shadow .18s ease;
+    box-shadow: 0 8px 18px -8px rgba(52, 152, 219, .85);
+  }
+  .checkin-btn:hover:not(:disabled) {
+    background: var(--blue-dark);
+    box-shadow: 0 10px 22px -8px rgba(41, 128, 185, .95);
+  }
+  .checkin-btn:active:not(:disabled) { transform: translateY(1px); }
+  .checkin-btn:disabled {
+    background: #a9c7dc;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .checkin-btn:focus-visible,
+  .name-input:focus-visible {
+    outline: 3px solid var(--blue-darker);
+    outline-offset: 2px;
+  }
+
+  /* Spinner shown inside the button during work */
+  .spinner {
+    width: 17px;
+    height: 17px;
+    border: 2.5px solid rgba(255, 255, 255, .45);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Status message ---------- */
+  .status {
+    margin-top: 16px;
+    padding: 13px 15px;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.6;
+    border-radius: 12px;
+    display: none;                 /* hidden by default */
+  }
+  .status.visible { display: block; }
+  .status.success { background: var(--success-bg); color: var(--success-fg); }
+  .status.error   { background: var(--error-bg);   color: var(--error-fg); }
+
+  .footer-note {
+    margin: 22px 0 0;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .card { padding: 28px 20px 22px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+  <main class="card">
+    <div class="logo" aria-hidden="true">📍</div>
+
+    <h1>تسجيل الحضور</h1>
+    <p class="subtitle">سجل حضورك بضغطة واحدة</p>
+
+    <label class="sr-only" for="nameInput" hidden>الاسم الكامل</label>
+    <input
+      id="nameInput"
+      class="name-input"
+      type="text"
+      placeholder="اكتب اسمك الكامل"
+      autocomplete="name"
+      dir="rtl"
+      enterkeyhint="done">
+
+    <button id="checkinBtn" class="checkin-btn" type="button">
+      <span id="btnText">تسجيل حضوري</span>
+    </button>
+
+    <div id="statusBox" class="status" role="status" aria-live="polite"></div>
+
+    <p class="footer-note">سيتم استخدام موقعك الجغرافي فقط لتسجيل الحضور</p>
+  </main>
+
+  <!-- Supabase JS client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ============================================================
+       CONFIG — replace these two values with your project's keys
+       ============================================================ */
+    const SUPABASE_URL = 'https://itahlydnrzembvbqbrdu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0YWhseWRucnplbWJ2YnFicmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTc5NjEsImV4cCI6MjEwNTMzMzk2MX0.0ErheMPDk_6wbhv49hb3pCAHilmnaf_bcWEEPOYGNyc';
+
+    const COOLDOWN_SECONDS = 60;
+
+    /* ---------- DOM references ---------- */
+    const nameInput = document.getElementById('nameInput');
+    const checkinBtn = document.getElementById('checkinBtn');
+    const btnText = document.getElementById('btnText');
+    const statusBox = document.getElementById('statusBox');
+
+    /* ---------- Supabase client ----------
+       Creating the client throws if the placeholders are still in place,
+       so we guard it and surface a clear message instead of a blank page. */
+    let supabaseClient = null;
+    let isConfigured = false;
+
+    try {
+      if (SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 20) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        isConfigured = true;
+      }
+    } catch (err) {
+      console.error('Supabase init failed:', err);
+    }
+
+    /* ---------- UI helpers ---------- */
+
+    // Show a status message. type is 'success' or 'error'.
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = 'status visible ' + type;
+    }
+
+    function hideStatus() {
+      statusBox.className = 'status';
+      statusBox.textContent = '';
+    }
+
+    // Put the button into a working state with a spinner and a label.
+    function setButtonLoading(label) {
+      checkinBtn.disabled = true;
+      nameInput.disabled = true;
+      btnText.textContent = label;
+      if (!checkinBtn.querySelector('.spinner')) {
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner';
+        checkinBtn.prepend(spinner);
+      }
+    }
+
+    // Return the button to its normal, clickable state.
+    function setButtonIdle(label) {
+      const spinner = checkinBtn.querySelector('.spinner');
+      if (spinner) spinner.remove();
+      btnText.textContent = label || 'تسجيل حضوري';
+      checkinBtn.disabled = false;
+      nameInput.disabled = false;
+    }
+
+    /* ---------- Step 2: GPS location ---------- */
+
+    // Wrap the callback-based geolocation API in a promise so we can await it.
+    function getCurrentLocation() {
+      return new Promise(function (resolve, reject) {
+        if (!navigator.geolocation) {
+          reject({ code: 2 }); // treat as POSITION_UNAVAILABLE
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        });
+      });
+    }
+
+    // Map a geolocation error code to an Arabic message.
+    function geolocationErrorMessage(error) {
+      switch (error && error.code) {
+        case 1: return '❌ لازم تسمح بالوصول لموقعك من إعدادات المتصفح';
+        case 2: return '❌ تعذر تحديد موقعك، تأكد من تشغيل GPS';
+        case 3: return '❌ انتهت مهلة تحديد الموقع، حاول تاني';
+        default: return '❌ تعذر تحديد موقعك، تأكد من تشغيل GPS';
+      }
+    }
+
+    /* ---------- Step 3: reverse geocoding ---------- */
+
+    // Turn coordinates into an address via Nominatim.
+    // Never throws — a failure here must not block the check-in.
+    async function reverseGeocode(lat, lng) {
+      const empty = { governorate: '', city: '', street: '', fullAddress: '' };
+
+      try {
+        const url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat +
+                    '&lon=' + lng + '&format=json&accept-language=ar';
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) return empty;
+
+        const data = await response.json();
+        const addr = data.address || {};
+
+        return {
+          governorate: addr.state || '',
+          city: addr.city || addr.town || addr.village || '',
+          street: addr.road || '',
+          fullAddress: data.display_name || ''
+        };
+      } catch (err) {
+        console.warn('Reverse geocoding failed, continuing without address:', err);
+        return empty;
+      }
+    }
+
+    /* ---------- Step 5: cooldown ---------- */
+
+    let cooldownTimer = null;
+
+    function startCooldown() {
+      let remaining = COOLDOWN_SECONDS;
+      checkinBtn.disabled = true;
+      btnText.textContent = 'يمكنك التسجيل مرة أخرى بعد ' + remaining + ' ثانية';
+
+      cooldownTimer = setInterval(function () {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(cooldownTimer);
+          cooldownTimer = null;
+          setButtonIdle('تسجيل حضوري');
+          return;
+        }
+        btnText.textContent = 'يمكنك التسجيل مرة أخرى بعد ' + remaining + ' ثانية';
+      }, 1000);
+    }
+
+    /* ---------- Main flow ---------- */
+
+    async function handleCheckIn() {
+      hideStatus();
+
+      // Step 1 — validate the name
+      const name = nameInput.value.trim();
+      if (!name) {
+        showStatus('❌ من فضلك اكتب اسمك', 'error');
+        nameInput.focus();
+        return;
+      }
+
+      if (!isConfigured) {
+        showStatus('❌ حصل خطأ، حاول تاني', 'error');
+        console.error('Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.');
+        return;
+      }
+
+      // Step 2 — get the GPS position
+      setButtonLoading('جاري تحديد موقعك...');
+
+      let position;
+      try {
+        position = await getCurrentLocation();
+      } catch (error) {
+        showStatus(geolocationErrorMessage(error), 'error');
+        setButtonIdle('تسجيل حضوري');
+        return;
+      }
+
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // Step 3 + 4 — resolve the address, then save the row
+      setButtonLoading('جاري الإرسال...');
+
+      const address = await reverseGeocode(lat, lng);
+
+      try {
+        const { error } = await supabaseClient.from('attendance').insert([{
+          name: name,
+          lat: lat,
+          lng: lng,
+          governorate: address.governorate,
+          city: address.city,
+          street: address.street,
+          full_address: address.fullAddress,
+          created_at: new Date().toISOString()
+        }]);
+
+        if (error) throw error;
+
+        // Success — confirm, clear the field, then lock the button for a minute
+        showStatus('✅ تم تسجيل حضورك بنجاح يا ' + name, 'success');
+        nameInput.value = '';
+        setButtonIdle('تسجيل حضوري');
+        startCooldown();
+      } catch (err) {
+        console.error('Insert failed:', err);
+        showStatus('❌ حصل خطأ، حاول تاني', 'error');
+        setButtonIdle('تسجيل حضوري');
+      }
+    }
+
+    /* ---------- Events ---------- */
+    checkinBtn.addEventListener('click', handleCheckIn);
+
+    // Enter key submits, matching the single-button flow.
+    nameInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !checkinBtn.disabled) {
+        handleCheckIn();
+      }
+    });
+
+    // Clear a stale error as soon as the user starts typing again.
+    nameInput.addEventListener('input', function () {
+      if (statusBox.classList.contains('error')) hideStatus();
+    });
+  })();
+  </script>
+</body>
+</html>
