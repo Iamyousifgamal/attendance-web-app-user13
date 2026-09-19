@@ -442,21 +442,25 @@
       const address = await reverseGeocode(lat, lng);
 
       try {
-        const { error } = await supabaseClient.from('attendance').insert([{
-          name: name,
-          lat: lat,
-          lng: lng,
-          governorate: address.governorate,
-          city: address.city,
-          street: address.street,
-          full_address: address.fullAddress,
-          created_at: new Date().toISOString()
-        }]);
+        const { data, error } = await supabaseClient.rpc('record_attendance', {
+  p_name: name,
+  p_lat: lat,
+  p_lng: lng,
+  p_governorate: address.governorate,
+  p_city: address.city,
+  p_street: address.street,
+  p_full_address: address.fullAddress
+});
 
-        if (error) throw error;
+if (error) throw error;
 
-        // Success — confirm, clear the field, then lock the button for a minute
-        showStatus('✅ تم تسجيل حضورك بنجاح يا ' + name, 'success');
+// Success — الرسالة بتختلف حسب النوع
+const checkType = data && data.check_type;
+const successMessage = checkType === 'in'
+  ? '✅ تم تسجيل حضورك بنجاح يا ' + name
+  : '✅ تم تسجيل انصرافك بنجاح يا ' + name;
+
+showStatus(successMessage, 'success');
         nameInput.value = '';
         setButtonIdle('تسجيل حضوري');
         startCooldown();
