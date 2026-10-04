@@ -11,13 +11,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-  /* ---------- Design tokens ---------- */
   :root {
     --blue:          #3498db;
     --blue-dark:     #2980b9;
     --blue-darker:   #1f6391;
-    --ink:           #1b3a57;   /* dark blue for headings */
-    --muted:         #8a99a8;   /* light gray for subtitle / footer */
+    --ink:           #1b3a57;
+    --muted:         #8a99a8;
     --card:          #ffffff;
     --field:         #f6f9fc;
     --border:        #e1e8ef;
@@ -31,8 +30,6 @@
     --radius:        16px;
   }
 
-  /* The page can render inside a viewer with its own theme setting.
-     Keep the brand identity, just soften the glare in dark mode. */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --card:       #16202b;
@@ -64,7 +61,6 @@
     --shadow:     0 18px 40px -18px rgba(0, 0, 0, .6);
   }
 
-  /* ---------- Base ---------- */
   *, *::before, *::after { box-sizing: border-box; }
 
   html, body { height: 100%; }
@@ -83,10 +79,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ---------- Card ---------- */
   .card {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
@@ -122,12 +117,22 @@
     color: var(--muted);
   }
 
-  /* ---------- Input ---------- */
-  .name-input {
+  .field-label {
+    display: block;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  .name-input,
+  .destination-input {
     width: 100%;
     padding: 14px 16px;
     font-family: inherit;
-    font-size: 16px;            /* 16px prevents zoom-on-focus in iOS Safari */
+    font-size: 16px;
     font-weight: 500;
     color: var(--ink);
     text-align: right;
@@ -137,25 +142,29 @@
     outline: none;
     transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
   }
-  .name-input::placeholder { color: var(--muted); font-weight: 400; }
-  .name-input:focus {
+  .name-input::placeholder,
+  .destination-input::placeholder { color: var(--muted); font-weight: 400; }
+
+  .name-input:focus,
+  .destination-input:focus {
     border-color: var(--blue);
     background: var(--card);
     box-shadow: 0 0 0 4px rgba(52, 152, 219, .14);
   }
-  .name-input:disabled { opacity: .6; }
 
-  /* ---------- Button ---------- */
+  .name-input:disabled,
+  .destination-input:disabled { opacity: .6; }
+
   .checkin-btn {
     width: 100%;
-    margin-top: 14px;
+    margin-top: 20px;
     padding: 15px 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     font-family: inherit;
-    font-size: 16.5px;
+    font-size: 15.5px;
     font-weight: 700;
     color: #fff;
     background: var(--blue);
@@ -176,12 +185,12 @@
     box-shadow: none;
   }
   .checkin-btn:focus-visible,
-  .name-input:focus-visible {
+  .name-input:focus-visible,
+  .destination-input:focus-visible {
     outline: 3px solid var(--blue-darker);
     outline-offset: 2px;
   }
 
-  /* Spinner shown inside the button during work */
   .spinner {
     width: 17px;
     height: 17px;
@@ -193,7 +202,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ---------- Status message ---------- */
   .status {
     margin-top: 16px;
     padding: 13px 15px;
@@ -201,7 +209,7 @@
     font-weight: 600;
     line-height: 1.6;
     border-radius: 12px;
-    display: none;                 /* hidden by default */
+    display: none;
   }
   .status.visible { display: block; }
   .status.success { background: var(--success-bg); color: var(--success-fg); }
@@ -235,9 +243,9 @@
     <div class="logo" aria-hidden="true">📍</div>
 
     <h1>تسجيل الحضور</h1>
-    <p class="subtitle">سجل حضورك بضغطة واحدة</p>
+    <p class="subtitle">سجل حضورك أو انصرافك بضغطة واحدة</p>
 
-    <label class="sr-only" for="nameInput" hidden>الاسم الكامل</label>
+    <label class="field-label" for="nameInput">الاسم الكامل</label>
     <input
       id="nameInput"
       class="name-input"
@@ -245,10 +253,20 @@
       placeholder="اكتب اسمك الكامل"
       autocomplete="name"
       dir="rtl"
+      enterkeyhint="next">
+
+    <label class="field-label" for="destinationInput">الوجهة</label>
+    <input
+      id="destinationInput"
+      class="destination-input"
+      type="text"
+      placeholder="مثال: مدينة نصر، المعادي، مدينة 6 أكتوبر..."
+      autocomplete="off"
+      dir="rtl"
       enterkeyhint="done">
 
     <button id="checkinBtn" class="checkin-btn" type="button">
-      <span id="btnText">تسجيل حضوري</span>
+      <span id="btnText">تسجيل حضور أو تسجيل انصراف</span>
     </button>
 
     <div id="statusBox" class="status" role="status" aria-live="polite"></div>
@@ -264,7 +282,7 @@
     'use strict';
 
     /* ============================================================
-       CONFIG — replace these two values with your project's keys
+       CONFIG
        ============================================================ */
     const SUPABASE_URL = 'https://itahlydnrzembvbqbrdu.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0YWhseWRucnplbWJ2YnFicmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NTc5NjEsImV4cCI6MjEwNTMzMzk2MX0.0ErheMPDk_6wbhv49hb3pCAHilmnaf_bcWEEPOYGNyc';
@@ -273,13 +291,12 @@
 
     /* ---------- DOM references ---------- */
     const nameInput = document.getElementById('nameInput');
+    const destinationInput = document.getElementById('destinationInput');
     const checkinBtn = document.getElementById('checkinBtn');
     const btnText = document.getElementById('btnText');
     const statusBox = document.getElementById('statusBox');
 
-    /* ---------- Supabase client ----------
-       Creating the client throws if the placeholders are still in place,
-       so we guard it and surface a clear message instead of a blank page. */
+    /* ---------- Supabase client ---------- */
     let supabaseClient = null;
     let isConfigured = false;
 
@@ -293,8 +310,6 @@
     }
 
     /* ---------- UI helpers ---------- */
-
-    // Show a status message. type is 'success' or 'error'.
     function showStatus(message, type) {
       statusBox.textContent = message;
       statusBox.className = 'status visible ' + type;
@@ -305,10 +320,10 @@
       statusBox.textContent = '';
     }
 
-    // Put the button into a working state with a spinner and a label.
     function setButtonLoading(label) {
       checkinBtn.disabled = true;
       nameInput.disabled = true;
+      destinationInput.disabled = true;
       btnText.textContent = label;
       if (!checkinBtn.querySelector('.spinner')) {
         const spinner = document.createElement('span');
@@ -317,22 +332,20 @@
       }
     }
 
-    // Return the button to its normal, clickable state.
     function setButtonIdle(label) {
       const spinner = checkinBtn.querySelector('.spinner');
       if (spinner) spinner.remove();
-      btnText.textContent = label || 'تسجيل حضوري';
+      btnText.textContent = label || 'تسجيل حضور أو تسجيل انصراف';
       checkinBtn.disabled = false;
       nameInput.disabled = false;
+      destinationInput.disabled = false;
     }
 
-    /* ---------- Step 2: GPS location ---------- */
-
-    // Wrap the callback-based geolocation API in a promise so we can await it.
+    /* ---------- GPS location ---------- */
     function getCurrentLocation() {
       return new Promise(function (resolve, reject) {
         if (!navigator.geolocation) {
-          reject({ code: 2 }); // treat as POSITION_UNAVAILABLE
+          reject({ code: 2 });
           return;
         }
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -343,7 +356,6 @@
       });
     }
 
-    // Map a geolocation error code to an Arabic message.
     function geolocationErrorMessage(error) {
       switch (error && error.code) {
         case 1: return '❌ لازم تسمح بالوصول لموقعك من إعدادات المتصفح';
@@ -353,36 +365,102 @@
       }
     }
 
-    /* ---------- Step 3: reverse geocoding ---------- */
+    /* ---------- Reverse geocoding ---------- */
+    const GOOGLE_MAPS_API_KEY = '';
 
-    // Turn coordinates into an address via Nominatim.
-    // Never throws — a failure here must not block the check-in.
-    async function reverseGeocode(lat, lng) {
-      const empty = { governorate: '', city: '', street: '', fullAddress: '' };
-
+    async function tryGoogleMaps(lat, lng) {
+      if (!GOOGLE_MAPS_API_KEY) return null;
       try {
-        const url = 'https://nominatim.openstreetmap.org/reverse?lat=' + lat +
-                    '&lon=' + lng + '&format=json&accept-language=ar';
-        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!response.ok) return empty;
-
-        const data = await response.json();
-        const addr = data.address || {};
-
+        const url = 'https://maps.googleapis.com/maps/api/geocode/json' +
+                    '?latlng=' + lat + ',' + lng +
+                    '&language=ar&key=' + GOOGLE_MAPS_API_KEY;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.results || !data.results[0]) return null;
+        const result = data.results[0];
+        const components = result.address_components || [];
+        const get = (type) => {
+          const c = components.find(comp => comp.types.includes(type));
+          return c ? c.long_name : '';
+        };
         return {
-          governorate: addr.state || '',
-          city: addr.city || addr.town || addr.village || '',
-          street: addr.road || '',
-          fullAddress: data.display_name || ''
+          governorate: get('administrative_area_level_1'),
+          city: get('administrative_area_level_2') || get('locality'),
+          street: get('route') || get('street_address') || '',
+          fullAddress: result.formatted_address || ''
         };
       } catch (err) {
-        console.warn('Reverse geocoding failed, continuing without address:', err);
-        return empty;
+        console.warn('Google Maps geocoding failed:', err);
+        return null;
       }
     }
 
-    /* ---------- Step 5: cooldown ---------- */
+    async function tryPhoton(lat, lng) {
+      try {
+        const url = 'https://photon.komoot.io/reverse?lat=' + lat + '&lon=' + lng + '&lang=ar';
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        const feature = data.features && data.features[0];
+        if (!feature) return null;
+        const props = feature.properties || {};
+        const governorate = props.state || props.county || '';
+        const city = props.city || props.district || props.locality || '';
+        const street = props.street || props.name || '';
+        const fullAddress = [street, city, governorate].filter(Boolean).join(' - ');
+        return { governorate, city, street, fullAddress };
+      } catch (err) {
+        console.warn('Photon geocoding failed:', err);
+        return null;
+      }
+    }
 
+    async function tryNominatim(lat, lng) {
+      try {
+        const url = 'https://nominatim.openstreetmap.org/reverse' +
+                    '?lat=' + lat + '&lon=' + lng +
+                    '&format=jsonv2&accept-language=ar&addressdetails=1&zoom=18';
+        const res = await fetch(url, {
+          headers: { 'Accept': 'application/json', 'User-Agent': 'AttendanceApp/1.0' }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const addr = data.address || {};
+        const governorate = addr.state || addr.province || addr.region || addr.county || '';
+        const city = addr.city || addr.town || addr.village ||
+                     addr.suburb || addr.city_district || addr.neighbourhood || '';
+        const street = addr.road || addr.pedestrian || addr.footway ||
+                       addr.neighbourhood || addr.suburb || '';
+        const fullAddress = [street, city, governorate].filter(Boolean).join(' - ');
+        return { governorate, city, street, fullAddress };
+      } catch (err) {
+        console.warn('Nominatim geocoding failed:', err);
+        return null;
+      }
+    }
+
+    async function reverseGeocode(lat, lng) {
+      const empty = { governorate: '', city: '', street: '', fullAddress: '' };
+
+      const google = await tryGoogleMaps(lat, lng);
+      if (google && google.street && google.city) return google;
+
+      const photon = await tryPhoton(lat, lng);
+      const nominatim = await tryNominatim(lat, lng);
+
+      const merged = {
+        governorate: (google && google.governorate) || (nominatim && nominatim.governorate) || (photon && photon.governorate) || '',
+        city:        (google && google.city)        || (nominatim && nominatim.city)        || (photon && photon.city)        || '',
+        street:      (google && google.street)      || (nominatim && nominatim.street)      || (photon && photon.street)      || '',
+        fullAddress: (google && google.fullAddress) || (photon && photon.fullAddress)       || (nominatim && nominatim.fullAddress) || ''
+      };
+
+      if (!merged.street && !merged.city && !merged.governorate) return empty;
+      return merged;
+    }
+
+    /* ---------- Cooldown ---------- */
     let cooldownTimer = null;
 
     function startCooldown() {
@@ -395,7 +473,7 @@
         if (remaining <= 0) {
           clearInterval(cooldownTimer);
           cooldownTimer = null;
-          setButtonIdle('تسجيل حضوري');
+          setButtonIdle('تسجيل حضور أو تسجيل انصراف');
           return;
         }
         btnText.textContent = 'يمكنك التسجيل مرة أخرى بعد ' + remaining + ' ثانية';
@@ -403,11 +481,10 @@
     }
 
     /* ---------- Main flow ---------- */
-
     async function handleCheckIn() {
       hideStatus();
 
-      // Step 1 — validate the name
+      // Step 1 — validate name
       const name = nameInput.value.trim();
       if (!name) {
         showStatus('❌ من فضلك اكتب اسمك', 'error');
@@ -415,13 +492,21 @@
         return;
       }
 
-      if (!isConfigured) {
-        showStatus('❌ حصل خطأ، حاول تاني', 'error');
-        console.error('Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.');
+      // Step 2 — validate destination
+      const destination = destinationInput.value.trim();
+      if (!destination) {
+        showStatus('❌ من فضلك اكتب وجهتك', 'error');
+        destinationInput.focus();
         return;
       }
 
-      // Step 2 — get the GPS position
+      if (!isConfigured) {
+        showStatus('❌ حصل خطأ، حاول تاني', 'error');
+        console.error('Supabase is not configured.');
+        return;
+      }
+
+      // Step 3 — get GPS
       setButtonLoading('جاري تحديد موقعك...');
 
       let position;
@@ -429,60 +514,69 @@
         position = await getCurrentLocation();
       } catch (error) {
         showStatus(geolocationErrorMessage(error), 'error');
-        setButtonIdle('تسجيل حضوري');
+        setButtonIdle('تسجيل حضور أو تسجيل انصراف');
         return;
       }
 
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
-      // Step 3 + 4 — resolve the address, then save the row
+      // Step 4 — reverse geocode
       setButtonLoading('جاري الإرسال...');
-
       const address = await reverseGeocode(lat, lng);
 
+      // Step 5 — send to Supabase
       try {
         const { data, error } = await supabaseClient.rpc('record_attendance', {
-  p_name: name,
-  p_lat: lat,
-  p_lng: lng,
-  p_governorate: address.governorate,
-  p_city: address.city,
-  p_street: address.street,
-  p_full_address: address.fullAddress
-});
+          p_name: name,
+          p_lat: lat,
+          p_lng: lng,
+          p_governorate: address.governorate,
+          p_city: address.city,
+          p_street: address.street,
+          p_full_address: address.fullAddress,
+          p_destination: destination
+        });
 
-if (error) throw error;
+        if (error) throw error;
 
-// Success — الرسالة بتختلف حسب النوع
-const checkType = data && data.check_type;
-const successMessage = checkType === 'in'
-  ? '✅ تم تسجيل حضورك بنجاح يا ' + name
-  : '✅ تم تسجيل انصرافك بنجاح يا ' + name;
+        const checkType = data && data.check_type;
+        const successMessage = checkType === 'in'
+          ? '✅ تم تسجيل حضورك بنجاح يا ' + name
+          : '✅ تم تسجيل انصرافك بنجاح يا ' + name;
 
-showStatus(successMessage, 'success');
+        showStatus(successMessage, 'success');
         nameInput.value = '';
-        setButtonIdle('تسجيل حضوري');
+        destinationInput.value = '';
+        setButtonIdle('تسجيل حضور أو تسجيل انصراف');
         startCooldown();
       } catch (err) {
         console.error('Insert failed:', err);
         showStatus('❌ حصل خطأ، حاول تاني', 'error');
-        setButtonIdle('تسجيل حضوري');
+        setButtonIdle('تسجيل حضور أو تسجيل انصراف');
       }
     }
 
     /* ---------- Events ---------- */
     checkinBtn.addEventListener('click', handleCheckIn);
 
-    // Enter key submits, matching the single-button flow.
     nameInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !checkinBtn.disabled) {
+        event.preventDefault();
+        destinationInput.focus();
+      }
+    });
+
+    destinationInput.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' && !checkinBtn.disabled) {
         handleCheckIn();
       }
     });
 
-    // Clear a stale error as soon as the user starts typing again.
     nameInput.addEventListener('input', function () {
+      if (statusBox.classList.contains('error')) hideStatus();
+    });
+    destinationInput.addEventListener('input', function () {
       if (statusBox.classList.contains('error')) hideStatus();
     });
   })();
